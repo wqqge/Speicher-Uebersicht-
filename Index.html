@@ -1,0 +1,150 @@
+<!DOCTYPE html><html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DMX Operator 240 – Speicher-Dokumentation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #38bdf8;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+      background: #020617;
+    }
+    th, td {
+      border: 1px solid #1e293b;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #020617;
+      color: #7dd3fc;
+      position: sticky;
+      top: 0;
+    }
+    td input {
+      width: 100%;
+      background: #020617;
+      color: #e5e7eb;
+      border: none;
+      outline: none;
+    }
+    button {
+      background: #38bdf8;
+      color: #020617;
+      border: none;
+      padding: 10px 16px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background: #0ea5e9;
+    }
+    .footer {
+      opacity: 0.7;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>DMX Operator 240 – Digitale Speicher-Dokumentation</h1>
+    <p>Trage hier ein, welche Szenen und Chases im Controller gespeichert sind. Die Daten werden lokal im Browser gespeichert.</p><h2>Szenen / Cues</h2>
+<table id="sceneTable">
+  <thead>
+    <tr>
+      <th>Bank</th>
+      <th>Szene</th>
+      <th>Name / Cue</th>
+      <th>Geräte (Scanner)</th>
+      <th>Farbe / Bewegung / Werte</th>
+      <th>Bemerkungen</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>Chases / Lauflichter</h2>
+<table id="chaseTable">
+  <thead>
+    <tr>
+      <th>Chase</th>
+      <th>Schritte</th>
+      <th>Szenen / Reihenfolge</th>
+      <th>Geschwindigkeit</th>
+      <th>Modus</th>
+      <th>Bemerkungen</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<button onclick="saveData()">💾 Speichern</button>
+<button onclick="loadData()">📂 Laden</button>
+<button onclick="exportJSON()">⬇️ Export</button>
+
+<p class="footer">DMX Operator 240 – Offline nutzbar | Daten bleiben im Browser</p>
+
+  </div>  <script>
+    const sceneRows = 30;
+    const chaseRows = 6;
+
+    function createTable(tableId, rows, cols) {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      for (let i = 0; i < rows; i++) {
+        const tr = document.createElement('tr');
+        for (let j = 0; j < cols; j++) {
+          const td = document.createElement('td');
+          const input = document.createElement('input');
+          td.appendChild(input);
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    function saveData() {
+      const data = {
+        scenes: [...document.querySelectorAll('#sceneTable input')].map(i => i.value),
+        chases: [...document.querySelectorAll('#chaseTable input')].map(i => i.value)
+      };
+      localStorage.setItem('dmx240', JSON.stringify(data));
+      alert('Daten gespeichert');
+    }
+
+    function loadData() {
+      const data = JSON.parse(localStorage.getItem('dmx240'));
+      if (!data) return;
+      document.querySelectorAll('#sceneTable input').forEach((i, idx) => i.value = data.scenes[idx] || '');
+      document.querySelectorAll('#chaseTable input').forEach((i, idx) => i.value = data.chases[idx] || '');
+    }
+
+    function exportJSON() {
+      const data = localStorage.getItem('dmx240');
+      const blob = new Blob([data], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'dmx_operator_240_backup.json';
+      a.click();
+    }
+
+    createTable('sceneTable', sceneRows, 6);
+    createTable('chaseTable', chaseRows, 6);
+    loadData();
+  </script></body>
+</html>
