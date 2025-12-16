@@ -11,140 +11,189 @@
       margin: 0;
       padding: 20px;
     }
-    h1, h2 {
-      color: #38bdf8;
-    }
-    .container {
-      max-width: 1200px;
-      margin: auto;
+    h1, h2 { color: #38bdf8; }
+    .container { max-width: 1400px; margin: auto; }
+    input, select {
+      width: 100%;
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #1e293b;
+      padding: 6px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 40px;
+      margin-bottom: 20px;
       background: #020617;
     }
     th, td {
       border: 1px solid #1e293b;
-      padding: 8px;
-      text-align: left;
+      padding: 6px;
+      vertical-align: top;
     }
-    th {
-      background: #020617;
-      color: #7dd3fc;
-      position: sticky;
-      top: 0;
-    }
-    td input {
-      width: 100%;
-      background: #020617;
-      color: #e5e7eb;
-      border: none;
-      outline: none;
-    }
+    th { background: #020617; color: #7dd3fc; position: sticky; top: 0; }
     button {
       background: #38bdf8;
       color: #020617;
       border: none;
-      padding: 10px 16px;
-      font-size: 16px;
+      padding: 8px 14px;
+      font-size: 14px;
       border-radius: 8px;
       cursor: pointer;
-      margin-right: 10px;
+      margin-right: 6px;
+      margin-bottom: 6px;
     }
-    button:hover {
-      background: #0ea5e9;
-    }
-    .footer {
-      opacity: 0.7;
-      font-size: 14px;
-    }
+    button:hover { background: #0ea5e9; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .footer { opacity: 0.6; font-size: 13px; margin-top: 20px; }@media print {
+  body { background: white; color: black; }
+  button, .toolbar { display: none; }
+  table { page-break-inside: avoid; }
+  th { color: black; }
+}
+
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>DMX Operator 240 – Digitale Speicher-Dokumentation</h1>
-    <p>Trage hier ein, welche Szenen und Chases im Controller gespeichert sind. Die Daten werden lokal im Browser gespeichert.</p><h2>Szenen / Cues</h2>
-<table id="sceneTable">
-  <thead>
-    <tr>
-      <th>Bank</th>
-      <th>Szene</th>
-      <th>Name / Cue</th>
-      <th>Geräte (Scanner)</th>
-      <th>Farbe / Bewegung / Werte</th>
-      <th>Bemerkungen</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<div class="container">
+  <h1>DMX Operator 240 – Speicher-Dokumentation</h1>  <div class="toolbar">
+    <select id="projectSelect" onchange="loadProject()"></select>
+    <input id="newProjectName" placeholder="Neues Projekt…" />
+    <button onclick="createProject()">📁 Projekt anlegen</button>
+    <button onclick="saveData()">💾 Speichern</button>
+    <button onclick="print()">🖨️ Drucken</button>
+    <input type="file" onchange="importJSON(event)" />
+    <button onclick="exportJSON()">⬇️ Export</button>
+    <input id="search" placeholder="🔍 Suche…" oninput="filterTable()" />
+  </div>  <h2>Szenen / Cues</h2>
+  <table id="sceneTable">
+    <thead>
+      <tr>
+        <th>Bank</th>
+        <th>Szene</th>
+        <th>Name / Cue</th>
+        <th>Geräte</th>
+        <th>Farbe / Bewegung / Werte</th>
+        <th>Bemerkungen</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="addSceneRow()">➕ Szene hinzufügen</button>  <h2>Chases / Lauflichter</h2>
+  <table id="chaseTable">
+    <thead>
+      <tr>
+        <th>Chase</th>
+        <th>Schritte</th>
+        <th>Szenen / Reihenfolge</th>
+        <th>Geschwindigkeit</th>
+        <th>Modus</th>
+        <th>Bemerkungen</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>  <p class="footer">Offline nutzbar · Daten lokal im Browser · GitHub Pages kompatibel</p>
+</div><script>
+let currentProject = 'default';
 
-<h2>Chases / Lauflichter</h2>
-<table id="chaseTable">
-  <thead>
-    <tr>
-      <th>Chase</th>
-      <th>Schritte</th>
-      <th>Szenen / Reihenfolge</th>
-      <th>Geschwindigkeit</th>
-      <th>Modus</th>
-      <th>Bemerkungen</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+function addRow(tbody, cols) {
+  const tr = document.createElement('tr');
+  for (let i = 0; i < cols; i++) {
+    const td = document.createElement('td');
+    const input = document.createElement('input');
+    td.appendChild(input);
+    tr.appendChild(td);
+  }
+  tbody.appendChild(tr);
+}
 
-<button onclick="saveData()">💾 Speichern</button>
-<button onclick="loadData()">📂 Laden</button>
-<button onclick="exportJSON()">⬇️ Export</button>
+function addSceneRow() {
+  addRow(document.querySelector('#sceneTable tbody'), 6);
+}
 
-<p class="footer">DMX Operator 240 – Offline nutzbar | Daten bleiben im Browser</p>
+function initTables() {
+  const sceneBody = document.querySelector('#sceneTable tbody');
+  const chaseBody = document.querySelector('#chaseTable tbody');
+  sceneBody.innerHTML = '';
+  chaseBody.innerHTML = '';
+  for (let i = 0; i < 10; i++) addSceneRow();
+  for (let i = 0; i < 6; i++) addRow(chaseBody, 6);
+}
 
-  </div>  <script>
-    const sceneRows = 30;
-    const chaseRows = 6;
+function saveData() {
+  const data = {
+    scenes: [...document.querySelectorAll('#sceneTable input')].map(i => i.value),
+    chases: [...document.querySelectorAll('#chaseTable input')].map(i => i.value)
+  };
+  localStorage.setItem('dmx240_' + currentProject, JSON.stringify(data));
+  alert('Gespeichert');
+}
 
-    function createTable(tableId, rows, cols) {
-      const tbody = document.querySelector(`#${tableId} tbody`);
-      for (let i = 0; i < rows; i++) {
-        const tr = document.createElement('tr');
-        for (let j = 0; j < cols; j++) {
-          const td = document.createElement('td');
-          const input = document.createElement('input');
-          td.appendChild(input);
-          tr.appendChild(td);
-        }
-        tbody.appendChild(tr);
-      }
-    }
+function loadData() {
+  const data = JSON.parse(localStorage.getItem('dmx240_' + currentProject));
+  if (!data) return;
+  document.querySelectorAll('#sceneTable input').forEach((i, idx) => i.value = data.scenes[idx] || '');
+  document.querySelectorAll('#chaseTable input').forEach((i, idx) => i.value = data.chases[idx] || '');
+}
 
-    function saveData() {
-      const data = {
-        scenes: [...document.querySelectorAll('#sceneTable input')].map(i => i.value),
-        chases: [...document.querySelectorAll('#chaseTable input')].map(i => i.value)
-      };
-      localStorage.setItem('dmx240', JSON.stringify(data));
-      alert('Daten gespeichert');
-    }
+function exportJSON() {
+  const data = localStorage.getItem('dmx240_' + currentProject);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = currentProject + '.json';
+  a.click();
+}
 
-    function loadData() {
-      const data = JSON.parse(localStorage.getItem('dmx240'));
-      if (!data) return;
-      document.querySelectorAll('#sceneTable input').forEach((i, idx) => i.value = data.scenes[idx] || '');
-      document.querySelectorAll('#chaseTable input').forEach((i, idx) => i.value = data.chases[idx] || '');
-    }
-
-    function exportJSON() {
-      const data = localStorage.getItem('dmx240');
-      const blob = new Blob([data], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'dmx_operator_240_backup.json';
-      a.click();
-    }
-
-    createTable('sceneTable', sceneRows, 6);
-    createTable('chaseTable', chaseRows, 6);
+function importJSON(e) {
+  const reader = new FileReader();
+  reader.onload = evt => {
+    localStorage.setItem('dmx240_' + currentProject, evt.target.result);
+    initTables();
     loadData();
-  </script></body>
-</html>
+  };
+  reader.readAsText(e.target.files[0]);
+}
+
+function filterTable() {
+  const q = document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('#sceneTable tbody tr').forEach(r => {
+    r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function loadProjectList() {
+  const sel = document.getElementById('projectSelect');
+  sel.innerHTML = '';
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('dmx240_'))
+    .forEach(k => {
+      const name = k.replace('dmx240_', '');
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+}
+
+function loadProject() {
+  currentProject = document.getElementById('projectSelect').value;
+  initTables();
+  loadData();
+}
+
+function createProject() {
+  const name = document.getElementById('newProjectName').value.trim();
+  if (!name) return;
+  currentProject = name;
+  localStorage.setItem('dmx240_' + name, '{}');
+  loadProjectList();
+  document.getElementById('projectSelect').value = name;
+  initTables();
+}
+
+initTables();
+loadProjectList();
+loadData();
+</script></body>
+  </html>
