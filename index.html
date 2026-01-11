@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DMX Operator 240 – Licht- & Bühnenplan</title>
+<title>DMX Operator 240 – Lichtplan & Cues</title>
 
 <style>
 body {
@@ -15,7 +15,6 @@ body {
 }
 
 h1, h2 { color: #38bdf8; }
-
 .container { max-width: 1400px; margin: auto; }
 
 input, select {
@@ -31,11 +30,8 @@ button {
   color: #020617;
   border: none;
   padding: 8px 14px;
-  font-size: 14px;
   border-radius: 8px;
   cursor: pointer;
-  margin-right: 6px;
-  margin-bottom: 6px;
 }
 
 button:hover { background: #0ea5e9; }
@@ -75,12 +71,12 @@ button:hover { background: #0ea5e9; }
   user-select: none;
 }
 
-.fixture:active { cursor: grabbing; }
-
 .fixture div {
   text-align: center;
   line-height: 1.1;
 }
+
+.fixture:active { cursor: grabbing; }
 
 /* ===== Tabellen ===== */
 table {
@@ -96,33 +92,16 @@ th, td {
 }
 
 th {
-  background: #020617;
   color: #7dd3fc;
   position: sticky;
   top: 0;
 }
 
-.footer {
-  opacity: 0.6;
-  font-size: 13px;
-  margin-top: 20px;
-}
-
-/* ===== Druckansicht ===== */
+/* ===== Druck ===== */
 @media print {
-  body {
-    background: white;
-    color: black;
-  }
+  body { background: white; color: black; }
 
-  .toolbar,
-  table,
-  h1,
-  h2:not(:first-of-type),
-  button,
-  input,
-  select,
-  .footer {
+  .toolbar, table, h1, h2:not(:first-of-type), button, input, select {
     display: none !important;
   }
 
@@ -144,26 +123,25 @@ th {
 <body>
 <div class="container">
 
-<h1>DMX Operator 240 – Licht- & Bühnenplan</h1>
+<h1>DMX Operator 240 – Planung</h1>
 
 <div class="toolbar">
   <select id="projectSelect" onchange="loadProject()"></select>
-  <input id="newProjectName" placeholder="Neues Projekt…" />
+  <input id="newProjectName" placeholder="Neues Projekt">
   <button onclick="createProject()">📁 Projekt</button>
-  <button onclick="saveData()">💾 Speichern</button>
-  <button onclick="window.print()">🖨️ Drucken</button>
+  <button onclick="saveAll()">💾 Speichern</button>
+  <button onclick="print()">🖨️ Drucken</button>
 </div>
 
-<h2>Bühne – Scheinwerfer positionieren</h2>
+<h2>Bühne – Scheinwerfer</h2>
 
 <div class="toolbar">
   <button onclick="addFixture()">➕ Scheinwerfer</button>
-  <button onclick="saveFixtures()">💾 Positionen speichern</button>
 </div>
 
 <div id="stage"></div>
 
-<h2>Szenen / Cues</h2>
+<h2>Szenen / Bankübersicht</h2>
 <table id="sceneTable">
 <thead>
 <tr>
@@ -179,7 +157,21 @@ th {
 </table>
 <button onclick="addSceneRow()">➕ Szene</button>
 
-<p class="footer">Offline · lokale Speicherung · Druckfertiger Lichtplan</p>
+<h2>Chases / Lauflichter</h2>
+<table id="chaseTable">
+<thead>
+<tr>
+  <th>Chase</th>
+  <th>Schritte</th>
+  <th>Szenen</th>
+  <th>Speed</th>
+  <th>Modus</th>
+  <th>Notizen</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+<button onclick="addChaseRow()">➕ Chase</button>
 
 </div>
 
@@ -188,141 +180,116 @@ let currentProject = 'default';
 let fixtureCount = 0;
 
 /* ===== Bühne ===== */
-function addFixture(x = 50, y = 50, dmx = '') {
+function addFixture(x=50,y=50,dmx='') {
   fixtureCount++;
-
   const f = document.createElement('div');
   f.className = 'fixture';
-  f.style.left = x + 'px';
-  f.style.top = y + 'px';
+  f.style.left = x+'px';
+  f.style.top = y+'px';
   f.dataset.dmx = dmx;
 
-  f.innerHTML = `
-    <div>
-      ${fixtureCount}<br>
-      <span class="dmx">${dmx || 'DMX?'}</span>
-    </div>
-  `;
+  f.innerHTML = `<div>${fixtureCount}<br><span>${dmx||'DMX?'}</span></div>`;
 
   f.ondblclick = () => {
-    const newDMX = prompt('DMX-Adresse:', f.dataset.dmx || '');
-    if (newDMX !== null) {
-      f.dataset.dmx = newDMX;
-      f.querySelector('.dmx').textContent = newDMX || 'DMX?';
+    const d = prompt('DMX-Adresse:', f.dataset.dmx);
+    if (d !== null) {
+      f.dataset.dmx = d;
+      f.querySelector('span').textContent = d || 'DMX?';
     }
+  };
+
+  f.oncontextmenu = e => {
+    e.preventDefault();
+    if (confirm('Scheinwerfer löschen?')) f.remove();
   };
 
   makeDraggable(f);
   document.getElementById('stage').appendChild(f);
 }
 
-function makeDraggable(el) {
-  let offsetX, offsetY, dragging = false;
-
-  el.addEventListener('mousedown', e => {
-    dragging = true;
-    offsetX = e.offsetX;
-    offsetY = e.offsetY;
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    const stage = document.getElementById('stage');
-    const r = stage.getBoundingClientRect();
-
-    let x = e.clientX - r.left - offsetX;
-    let y = e.clientY - r.top - offsetY;
-
-    x = Math.max(0, Math.min(stage.clientWidth - 44, x));
-    y = Math.max(0, Math.min(stage.clientHeight - 44, y));
-
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-  });
-
-  document.addEventListener('mouseup', () => dragging = false);
+function makeDraggable(el){
+  let ox, oy, drag=false;
+  el.onmousedown = e => { drag=true; ox=e.offsetX; oy=e.offsetY; };
+  document.onmousemove = e => {
+    if(!drag) return;
+    const s=document.getElementById('stage').getBoundingClientRect();
+    el.style.left = Math.max(0,Math.min(s.width-44,e.clientX-s.left-ox))+'px';
+    el.style.top  = Math.max(0,Math.min(s.height-44,e.clientY-s.top-oy))+'px';
+  };
+  document.onmouseup = ()=>drag=false;
 }
 
-function saveFixtures() {
-  const fixtures = [...document.querySelectorAll('.fixture')].map(f => ({
-    x: f.style.left,
-    y: f.style.top,
-    dmx: f.dataset.dmx || ''
-  }));
-  localStorage.setItem('fixtures_' + currentProject, JSON.stringify(fixtures));
-  alert('Scheinwerfer gespeichert');
-}
-
-function loadFixtures() {
-  const data = JSON.parse(localStorage.getItem('fixtures_' + currentProject));
-  if (!data) return;
-  const stage = document.getElementById('stage');
-  stage.innerHTML = '';
-  fixtureCount = 0;
-  data.forEach(f => addFixture(parseInt(f.x), parseInt(f.y), f.dmx));
-}
-
-/* ===== Szenen ===== */
+/* ===== Tabellen ===== */
 function addSceneRow() {
-  const tr = document.createElement('tr');
-  for (let i = 0; i < 6; i++) {
-    const td = document.createElement('td');
-    const input = document.createElement('input');
-    td.appendChild(input);
+  const tr=document.createElement('tr');
+  for(let i=0;i<6;i++){
+    const td=document.createElement('td');
+    td.appendChild(document.createElement('input'));
     tr.appendChild(td);
   }
-  document.querySelector('#sceneTable tbody').appendChild(tr);
+  sceneTable.tBodies[0].appendChild(tr);
 }
 
-/* ===== Projekte ===== */
-function saveData() {
-  const scenes = [...document.querySelectorAll('#sceneTable input')].map(i => i.value);
-  localStorage.setItem('dmx_' + currentProject, JSON.stringify({ scenes }));
-  saveFixtures();
+function addChaseRow() {
+  const tr=document.createElement('tr');
+  for(let i=0;i<6;i++){
+    const td=document.createElement('td');
+    td.appendChild(document.createElement('input'));
+    tr.appendChild(td);
+  }
+  chaseTable.tBodies[0].appendChild(tr);
 }
 
-function loadData() {
-  const data = JSON.parse(localStorage.getItem('dmx_' + currentProject));
-  if (!data) return;
-  document.querySelectorAll('#sceneTable input').forEach((i, n) => i.value = data.scenes[n] || '');
+/* ===== Speicherung ===== */
+function saveAll(){
+  const data={
+    scenes:[...sceneTable.querySelectorAll('input')].map(i=>i.value),
+    chases:[...chaseTable.querySelectorAll('input')].map(i=>i.value),
+    fixtures:[...document.querySelectorAll('.fixture')].map(f=>({
+      x:f.style.left,y:f.style.top,dmx:f.dataset.dmx
+    }))
+  };
+  localStorage.setItem('dmx_'+currentProject,JSON.stringify(data));
+  alert('Gespeichert');
 }
 
-function loadProjectList() {
-  const sel = document.getElementById('projectSelect');
-  sel.innerHTML = '';
-  Object.keys(localStorage)
-    .filter(k => k.startsWith('dmx_'))
-    .forEach(k => {
-      const name = k.replace('dmx_', '');
-      const o = document.createElement('option');
-      o.value = name;
-      o.textContent = name;
-      sel.appendChild(o);
-    });
+function loadProject(){
+  currentProject=projectSelect.value;
+  const d=JSON.parse(localStorage.getItem('dmx_'+currentProject)||'{}');
+
+  sceneTable.tBodies[0].innerHTML='';
+  chaseTable.tBodies[0].innerHTML='';
+  for(let i=0;i<10;i++) addSceneRow();
+  for(let i=0;i<6;i++) addChaseRow();
+
+  [...sceneTable.querySelectorAll('input')].forEach((i,n)=>i.value=d.scenes?.[n]||'');
+  [...chaseTable.querySelectorAll('input')].forEach((i,n)=>i.value=d.chases?.[n]||'');
+
+  stage.innerHTML=''; fixtureCount=0;
+  d.fixtures?.forEach(f=>addFixture(parseInt(f.x),parseInt(f.y),f.dmx));
 }
 
-function loadProject() {
-  currentProject = document.getElementById('projectSelect').value;
-  document.querySelector('#sceneTable tbody').innerHTML = '';
-  for (let i = 0; i < 10; i++) addSceneRow();
-  loadData();
-  loadFixtures();
+function createProject(){
+  const n=newProjectName.value.trim();
+  if(!n) return;
+  localStorage.setItem('dmx_'+n,'{}');
+  loadProjects(); projectSelect.value=n; loadProject();
 }
 
-function createProject() {
-  const name = document.getElementById('newProjectName').value.trim();
-  if (!name) return;
-  currentProject = name;
-  localStorage.setItem('dmx_' + name, '{}');
-  loadProjectList();
-  document.getElementById('projectSelect').value = name;
-  loadProject();
+function loadProjects(){
+  projectSelect.innerHTML='';
+  Object.keys(localStorage).filter(k=>k.startsWith('dmx_')).forEach(k=>{
+    const o=document.createElement('option');
+    o.value=k.replace('dmx_','');
+    o.textContent=o.value;
+    projectSelect.appendChild(o);
+  });
 }
 
 /* Init */
-for (let i = 0; i < 10; i++) addSceneRow();
-loadProjectList();
-loadProject();
+for(let i=0;i<10;i++) addSceneRow();
+for(let i=0;i<6;i++) addChaseRow();
+loadProjects(); loadProject();
 </script>
 
 </body>
