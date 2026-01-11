@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DMX Operator 240 – Speicher-Dokumentation</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DMX Operator 240 – Licht- & Bühnenplan</title>
 
 <style>
 body {
@@ -13,7 +13,9 @@ body {
   margin: 0;
   padding: 20px;
 }
+
 h1, h2 { color: #38bdf8; }
+
 .container { max-width: 1400px; margin: auto; }
 
 input, select {
@@ -22,26 +24,6 @@ input, select {
   color: #e5e7eb;
   border: 1px solid #1e293b;
   padding: 6px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-  background: #020617;
-}
-
-th, td {
-  border: 1px solid #1e293b;
-  padding: 6px;
-  vertical-align: top;
-}
-
-th {
-  background: #020617;
-  color: #7dd3fc;
-  position: sticky;
-  top: 0;
 }
 
 button {
@@ -65,220 +47,283 @@ button:hover { background: #0ea5e9; }
   margin-bottom: 10px;
 }
 
+/* ===== Bühne ===== */
+#stage {
+  width: 100%;
+  max-width: 1000px;
+  height: 450px;
+  background: #020617;
+  border: 2px dashed #38bdf8;
+  border-radius: 12px;
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.fixture {
+  width: 44px;
+  height: 44px;
+  background: #38bdf8;
+  color: #020617;
+  border-radius: 50%;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  font-size: 11px;
+  font-weight: bold;
+  user-select: none;
+}
+
+.fixture:active { cursor: grabbing; }
+
+.fixture div {
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* ===== Tabellen ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background: #020617;
+}
+
+th, td {
+  border: 1px solid #1e293b;
+  padding: 6px;
+}
+
+th {
+  background: #020617;
+  color: #7dd3fc;
+  position: sticky;
+  top: 0;
+}
+
 .footer {
   opacity: 0.6;
   font-size: 13px;
   margin-top: 20px;
 }
 
+/* ===== Druckansicht ===== */
 @media print {
-  body { background: white; color: black; }
-  button, .toolbar { display: none; }
-  table { page-break-inside: avoid; }
-  th { color: black; }
+  body {
+    background: white;
+    color: black;
+  }
+
+  .toolbar,
+  table,
+  h1,
+  h2:not(:first-of-type),
+  button,
+  input,
+  select,
+  .footer {
+    display: none !important;
+  }
+
+  #stage {
+    display: block;
+    border: 2px solid black;
+    height: 500px;
+  }
+
+  .fixture {
+    background: white;
+    border: 2px solid black;
+    color: black;
+  }
 }
 </style>
 </head>
 
 <body>
 <div class="container">
-<h1>DMX Operator 240 – Speicher-Dokumentation</h1>
+
+<h1>DMX Operator 240 – Licht- & Bühnenplan</h1>
 
 <div class="toolbar">
   <select id="projectSelect" onchange="loadProject()"></select>
   <input id="newProjectName" placeholder="Neues Projekt…" />
-  <button onclick="createProject()">📁 Projekt anlegen</button>
+  <button onclick="createProject()">📁 Projekt</button>
   <button onclick="saveData()">💾 Speichern</button>
-  <button onclick="print()">🖨️ Drucken</button>
-  <input type="file" onchange="importJSON(event)" />
-  <button onclick="exportJSON()">⬇️ Export</button>
-  <input id="search" placeholder="🔍 Suche…" oninput="filterTable()" />
+  <button onclick="window.print()">🖨️ Drucken</button>
 </div>
 
+<h2>Bühne – Scheinwerfer positionieren</h2>
+
+<div class="toolbar">
+  <button onclick="addFixture()">➕ Scheinwerfer</button>
+  <button onclick="saveFixtures()">💾 Positionen speichern</button>
+</div>
+
+<div id="stage"></div>
+
 <h2>Szenen / Cues</h2>
-
-<button onclick="addSceneRow()">➕ Szene hinzufügen</button>
-
 <table id="sceneTable">
 <thead>
 <tr>
   <th>Bank</th>
   <th>Szene</th>
-  <th>Name / Cue</th>
+  <th>Name</th>
   <th>Geräte</th>
-  <th>Position / Platzierung</th>
-  <th>Farbe / Bewegung / Werte</th>
-  <th>Bemerkungen</th>
+  <th>Werte</th>
+  <th>Notizen</th>
 </tr>
 </thead>
 <tbody></tbody>
 </table>
+<button onclick="addSceneRow()">➕ Szene</button>
 
-<button onclick="addSceneRow()">➕ Szene hinzufügen</button>
+<p class="footer">Offline · lokale Speicherung · Druckfertiger Lichtplan</p>
 
-<h2>Chases / Lauflichter</h2>
-
-<table id="chaseTable">
-<thead>
-<tr>
-  <th>Chase</th>
-  <th>Schritte</th>
-  <th>Szenen / Reihenfolge</th>
-  <th>Geschwindigkeit</th>
-  <th>Modus</th>
-  <th>Bemerkungen</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-<p class="footer">
-Offline nutzbar · Daten lokal im Browser · GitHub Pages kompatibel
-</p>
 </div>
 
 <script>
 let currentProject = 'default';
+let fixtureCount = 0;
 
-const positionOptions = [
-  '',
-  'FOH links', 'FOH mitte', 'FOH rechts',
-  'Bühne links', 'Bühne mitte', 'Bühne rechts',
-  'Traverse vorne', 'Traverse mitte', 'Traverse hinten',
-  'Boden links', 'Boden rechts',
-  'Portal oben',
-  'Backlight',
-  'Special / Effekt'
-];
+/* ===== Bühne ===== */
+function addFixture(x = 50, y = 50, dmx = '') {
+  fixtureCount++;
 
-function createPositionSelect() {
-  const select = document.createElement('select');
-  positionOptions.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p;
-    opt.textContent = p || '— auswählen —';
-    select.appendChild(opt);
-  });
-  return select;
+  const f = document.createElement('div');
+  f.className = 'fixture';
+  f.style.left = x + 'px';
+  f.style.top = y + 'px';
+  f.dataset.dmx = dmx;
+
+  f.innerHTML = `
+    <div>
+      ${fixtureCount}<br>
+      <span class="dmx">${dmx || 'DMX?'}</span>
+    </div>
+  `;
+
+  f.ondblclick = () => {
+    const newDMX = prompt('DMX-Adresse:', f.dataset.dmx || '');
+    if (newDMX !== null) {
+      f.dataset.dmx = newDMX;
+      f.querySelector('.dmx').textContent = newDMX || 'DMX?';
+    }
+  };
+
+  makeDraggable(f);
+  document.getElementById('stage').appendChild(f);
 }
 
-function addRow(tbody, cols, isScene = false) {
+function makeDraggable(el) {
+  let offsetX, offsetY, dragging = false;
+
+  el.addEventListener('mousedown', e => {
+    dragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const stage = document.getElementById('stage');
+    const r = stage.getBoundingClientRect();
+
+    let x = e.clientX - r.left - offsetX;
+    let y = e.clientY - r.top - offsetY;
+
+    x = Math.max(0, Math.min(stage.clientWidth - 44, x));
+    y = Math.max(0, Math.min(stage.clientHeight - 44, y));
+
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+  });
+
+  document.addEventListener('mouseup', () => dragging = false);
+}
+
+function saveFixtures() {
+  const fixtures = [...document.querySelectorAll('.fixture')].map(f => ({
+    x: f.style.left,
+    y: f.style.top,
+    dmx: f.dataset.dmx || ''
+  }));
+  localStorage.setItem('fixtures_' + currentProject, JSON.stringify(fixtures));
+  alert('Scheinwerfer gespeichert');
+}
+
+function loadFixtures() {
+  const data = JSON.parse(localStorage.getItem('fixtures_' + currentProject));
+  if (!data) return;
+  const stage = document.getElementById('stage');
+  stage.innerHTML = '';
+  fixtureCount = 0;
+  data.forEach(f => addFixture(parseInt(f.x), parseInt(f.y), f.dmx));
+}
+
+/* ===== Szenen ===== */
+function addSceneRow() {
   const tr = document.createElement('tr');
-  for (let i = 0; i < cols; i++) {
+  for (let i = 0; i < 6; i++) {
     const td = document.createElement('td');
-
-    if (isScene && i === 4) {
-      td.appendChild(createPositionSelect());
-    } else {
-      const input = document.createElement('input');
-      td.appendChild(input);
-    }
-
+    const input = document.createElement('input');
+    td.appendChild(input);
     tr.appendChild(td);
   }
-  tbody.appendChild(tr);
+  document.querySelector('#sceneTable tbody').appendChild(tr);
 }
 
-function addSceneRow() {
-  addRow(document.querySelector('#sceneTable tbody'), 7, true);
-}
-
-function initTables() {
-  const sceneBody = document.querySelector('#sceneTable tbody');
-  const chaseBody = document.querySelector('#chaseTable tbody');
-  sceneBody.innerHTML = '';
-  chaseBody.innerHTML = '';
-  for (let i = 0; i < 10; i++) addSceneRow();
-  for (let i = 0; i < 6; i++) addRow(chaseBody, 6);
-}
-
+/* ===== Projekte ===== */
 function saveData() {
-  const sceneValues = [];
-  document.querySelectorAll('#sceneTable tbody tr').forEach(tr => {
-    tr.querySelectorAll('input, select').forEach(el => {
-      sceneValues.push(el.value);
-    });
-  });
-
-  const chaseValues = [...document.querySelectorAll('#chaseTable input')].map(i => i.value);
-
-  localStorage.setItem(
-    'dmx240_' + currentProject,
-    JSON.stringify({ scenes: sceneValues, chases: chaseValues })
-  );
-  alert('Gespeichert');
+  const scenes = [...document.querySelectorAll('#sceneTable input')].map(i => i.value);
+  localStorage.setItem('dmx_' + currentProject, JSON.stringify({ scenes }));
+  saveFixtures();
 }
 
 function loadData() {
-  const data = JSON.parse(localStorage.getItem('dmx240_' + currentProject));
+  const data = JSON.parse(localStorage.getItem('dmx_' + currentProject));
   if (!data) return;
-
-  const sceneEls = document.querySelectorAll('#sceneTable input, #sceneTable select');
-  sceneEls.forEach((el, idx) => el.value = data.scenes[idx] || '');
-
-  document.querySelectorAll('#chaseTable input')
-    .forEach((el, idx) => el.value = data.chases[idx] || '');
-}
-
-function exportJSON() {
-  const data = localStorage.getItem('dmx240_' + currentProject);
-  const blob = new Blob([data], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = currentProject + '.json';
-  a.click();
-}
-
-function importJSON(e) {
-  const reader = new FileReader();
-  reader.onload = evt => {
-    localStorage.setItem('dmx240_' + currentProject, evt.target.result);
-    initTables();
-    loadData();
-  };
-  reader.readAsText(e.target.files[0]);
-}
-
-function filterTable() {
-  const q = document.getElementById('search').value.toLowerCase();
-  document.querySelectorAll('#sceneTable tbody tr').forEach(r => {
-    r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
-  });
+  document.querySelectorAll('#sceneTable input').forEach((i, n) => i.value = data.scenes[n] || '');
 }
 
 function loadProjectList() {
   const sel = document.getElementById('projectSelect');
   sel.innerHTML = '';
   Object.keys(localStorage)
-    .filter(k => k.startsWith('dmx240_'))
+    .filter(k => k.startsWith('dmx_'))
     .forEach(k => {
-      const name = k.replace('dmx240_', '');
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      sel.appendChild(opt);
+      const name = k.replace('dmx_', '');
+      const o = document.createElement('option');
+      o.value = name;
+      o.textContent = name;
+      sel.appendChild(o);
     });
 }
 
 function loadProject() {
   currentProject = document.getElementById('projectSelect').value;
-  initTables();
+  document.querySelector('#sceneTable tbody').innerHTML = '';
+  for (let i = 0; i < 10; i++) addSceneRow();
   loadData();
+  loadFixtures();
 }
 
 function createProject() {
   const name = document.getElementById('newProjectName').value.trim();
   if (!name) return;
   currentProject = name;
-  localStorage.setItem('dmx240_' + name, '{}');
+  localStorage.setItem('dmx_' + name, '{}');
   loadProjectList();
   document.getElementById('projectSelect').value = name;
-  initTables();
+  loadProject();
 }
 
-initTables();
+/* Init */
+for (let i = 0; i < 10; i++) addSceneRow();
 loadProjectList();
-loadData();
+loadProject();
 </script>
+
 </body>
 </html>
