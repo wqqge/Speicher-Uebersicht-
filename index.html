@@ -2,120 +2,106 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<title>DMX Operator 240 – Planung</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DMX Operator 240 – Lichtplan & Cues</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
-  margin: 0;
-  padding: 20px;
+body{
+  font-family:Arial,sans-serif;
+  background:#0f172a;
+  color:#e5e7eb;
+  margin:0;
+  padding:20px;
+}
+h1,h2{color:#38bdf8}
+.container{max-width:1500px;margin:auto}
+
+input{
+  width:100%;
+  background:#020617;
+  color:#e5e7eb;
+  border:1px solid #1e293b;
+  padding:6px;
 }
 
-h1, h2 { color: #38bdf8; }
-.container { max-width: 1400px; margin: auto; }
+button{
+  background:#38bdf8;
+  color:#020617;
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-right:6px;
+}
+button:hover{background:#0ea5e9}
 
-input, select {
-  width: 100%;
-  background: #020617;
-  color: #e5e7eb;
-  border: 1px solid #1e293b;
-  padding: 6px;
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#020617;
+  margin-bottom:28px;
+}
+th,td{
+  border:1px solid #1e293b;
+  padding:6px;
+  vertical-align:top;
+}
+th{color:#7dd3fc}
+
+/* ===== Bank-Trennung ===== */
+.bank-header td{
+  background:#020617;
+  color:#38bdf8;
+  font-weight:bold;
+  padding:10px;
+  border-top:3px solid #38bdf8;
+}
+.bank-spacer td{
+  border:none;
+  height:12px;
+  background:transparent;
 }
 
-button {
-  background: #38bdf8;
-  color: #020617;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
+/* ===== Chase Szenen ===== */
+.scene-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:4px;
+  max-height:180px;
+  overflow:auto;
+  font-size:12px;
+}
+.scene-grid label{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  white-space:nowrap;
 }
 
-button:hover { background: #0ea5e9; }
-
-.toolbar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+/* Bühne */
+#stage{
+  width:100%;
+  max-width:1000px;
+  height:450px;
+  background:#020617;
+  border:2px dashed #38bdf8;
+  border-radius:12px;
+  position:relative;
+  margin-bottom:30px;
 }
-
-/* ===== Bühne ===== */
-#stage {
-  width: 100%;
-  max-width: 1000px;
-  height: 450px;
-  background: #020617;
-  border: 2px dashed #38bdf8;
-  border-radius: 12px;
-  position: relative;
-  margin-bottom: 30px;
-}
-
-.fixture {
-  width: 44px;
-  height: 44px;
-  background: #38bdf8;
-  color: #020617;
-  border-radius: 50%;
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  font-size: 11px;
-  font-weight: bold;
-  user-select: none;
-}
-
-.fixture div {
-  text-align: center;
-  line-height: 1.1;
-}
-
-.fixture:active { cursor: grabbing; }
-
-/* ===== Tabellen ===== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-  background: #020617;
-}
-
-th, td {
-  border: 1px solid #1e293b;
-  padding: 6px;
-}
-
-th {
-  color: #7dd3fc;
-  position: sticky;
-  top: 0;
-}
-
-/* ===== Druck ===== */
-@media print {
-  body { background: white; color: black; }
-
-  .toolbar, table, h1, h2:not(:first-of-type), button, input, select {
-    display: none !important;
-  }
-
-  #stage {
-    display: block;
-    border: 2px solid black;
-    height: 500px;
-  }
-
-  .fixture {
-    background: white;
-    border: 2px solid black;
-    color: black;
-  }
+.fixture{
+  width:44px;
+  height:44px;
+  background:#38bdf8;
+  color:#020617;
+  border-radius:50%;
+  position:absolute;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:grab;
+  font-size:11px;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -125,172 +111,197 @@ th {
 
 <h1>DMX Operator 240 – Planung</h1>
 
-<div class="toolbar">
-  <select id="projectSelect" onchange="loadProject()"></select>
-  <input id="newProjectName" placeholder="Neues Projekt">
-  <button onclick="createProject()">📁 Projekt</button>
-  <button onclick="saveAll()">💾 Speichern</button>
-  <button onclick="print()">🖨️ Drucken</button>
-</div>
+<button onclick="downloadBackup()">⬇️ Backup herunterladen</button>
+<button onclick="document.getElementById('importFile').click()">📂 Backup importieren</button>
+<input type="file" id="importFile" accept=".json" hidden>
 
-<h2>Bühne – Scheinwerfer</h2>
-
-<div class="toolbar">
-  <button onclick="addFixture()">➕ Scheinwerfer</button>
-</div>
-
+<h2>Bühne</h2>
+<button onclick="addFixture()">➕ Scheinwerfer</button>
 <div id="stage"></div>
 
-<h2>Szenen / Bankübersicht</h2>
-<table id="sceneTable">
+<h2>Szenen – 30 Bänke × 8 Szenen</h2>
+<table>
 <thead>
 <tr>
   <th>Bank</th>
   <th>Szene</th>
   <th>Name</th>
-  <th>Geräte</th>
-  <th>Werte</th>
   <th>Notizen</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody id="sceneBody"></tbody>
 </table>
-<button onclick="addSceneRow()">➕ Szene</button>
 
-<h2>Chases / Lauflichter</h2>
-<table id="chaseTable">
+<h2>Chases</h2>
+<table>
 <thead>
 <tr>
-  <th>Chase</th>
-  <th>Schritte</th>
-  <th>Szenen</th>
+  <th>Name</th>
+  <th>Szenen (mit Namen)</th>
   <th>Speed</th>
   <th>Modus</th>
   <th>Notizen</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody id="chaseBody"></tbody>
 </table>
-<button onclick="addChaseRow()">➕ Chase</button>
+<button onclick="addChase()">➕ Chase</button>
 
 </div>
 
 <script>
-let currentProject = 'default';
-let fixtureCount = 0;
-
-/* ===== Bühne ===== */
-function addFixture(x=50,y=50,dmx='') {
+/* ---------- Bühne ---------- */
+let fixtureCount=0;
+function addFixture(x=50,y=50){
   fixtureCount++;
-  const f = document.createElement('div');
-  f.className = 'fixture';
-  f.style.left = x+'px';
-  f.style.top = y+'px';
-  f.dataset.dmx = dmx;
-
-  f.innerHTML = `<div>${fixtureCount}<br><span>${dmx||'DMX?'}</span></div>`;
-
-  f.ondblclick = () => {
-    const d = prompt('DMX-Adresse:', f.dataset.dmx);
-    if (d !== null) {
-      f.dataset.dmx = d;
-      f.querySelector('span').textContent = d || 'DMX?';
-    }
-  };
-
-  f.oncontextmenu = e => {
-    e.preventDefault();
-    if (confirm('Scheinwerfer löschen?')) f.remove();
-  };
-
-  makeDraggable(f);
-  document.getElementById('stage').appendChild(f);
+  const f=document.createElement('div');
+  f.className='fixture';
+  f.style.left=x+'px';
+  f.style.top=y+'px';
+  f.textContent=fixtureCount;
+  stage.appendChild(f);
 }
 
-function makeDraggable(el){
-  let ox, oy, drag=false;
-  el.onmousedown = e => { drag=true; ox=e.offsetX; oy=e.offsetY; };
-  document.onmousemove = e => {
-    if(!drag) return;
-    const s=document.getElementById('stage').getBoundingClientRect();
-    el.style.left = Math.max(0,Math.min(s.width-44,e.clientX-s.left-ox))+'px';
-    el.style.top  = Math.max(0,Math.min(s.height-44,e.clientY-s.top-oy))+'px';
-  };
-  document.onmouseup = ()=>drag=false;
-}
+/* ---------- Szenen ---------- */
+const sceneBody=document.getElementById('sceneBody');
+const sceneNames={};
 
-/* ===== Tabellen ===== */
-function addSceneRow() {
-  const tr=document.createElement('tr');
-  for(let i=0;i<6;i++){
-    const td=document.createElement('td');
-    td.appendChild(document.createElement('input'));
-    tr.appendChild(td);
+for(let bank=1;bank<=30;bank++){
+
+  // Bank Header
+  const h=document.createElement('tr');
+  h.className='bank-header';
+  h.innerHTML=`<td colspan="4">Bank ${bank}</td>`;
+  sceneBody.appendChild(h);
+
+  for(let s=1;s<=8;s++){
+    const id=`B${bank}S${s}`;
+    sceneNames[id]='';
+
+    const tr=document.createElement('tr');
+    const nameInput=document.createElement('input');
+    nameInput.dataset.scene=id;
+    nameInput.oninput=()=>{
+      sceneNames[id]=nameInput.value;
+      updateAllChaseLabels();
+    };
+
+    tr.innerHTML=`
+      <td>${bank}</td>
+      <td>${s}</td>
+      <td></td>
+      <td><input></td>
+    `;
+    tr.children[2].appendChild(nameInput);
+    sceneBody.appendChild(tr);
   }
-  sceneTable.tBodies[0].appendChild(tr);
+
+  // Abstand nach Bank
+  const sp=document.createElement('tr');
+  sp.className='bank-spacer';
+  sp.innerHTML='<td colspan="4"></td>';
+  sceneBody.appendChild(sp);
 }
 
-function addChaseRow() {
-  const tr=document.createElement('tr');
-  for(let i=0;i<6;i++){
-    const td=document.createElement('td');
-    td.appendChild(document.createElement('input'));
-    tr.appendChild(td);
-  }
-  chaseTable.tBodies[0].appendChild(tr);
+/* ---------- Chases ---------- */
+const chaseBody=document.getElementById('chaseBody');
+
+function buildSceneSelector(){
+  const grid=document.createElement('div');
+  grid.className='scene-grid';
+
+  Object.keys(sceneNames).forEach(id=>{
+    const label=document.createElement('label');
+    label.dataset.scene=id;
+    label.innerHTML=`
+      <input type="checkbox" value="${id}">
+      <span>${id} – </span><span class="scene-name"></span>
+    `;
+    grid.appendChild(label);
+  });
+  return grid;
 }
 
-/* ===== Speicherung ===== */
-function saveAll(){
-  const data={
-    scenes:[...sceneTable.querySelectorAll('input')].map(i=>i.value),
-    chases:[...chaseTable.querySelectorAll('input')].map(i=>i.value),
-    fixtures:[...document.querySelectorAll('.fixture')].map(f=>({
-      x:f.style.left,y:f.style.top,dmx:f.dataset.dmx
-    }))
-  };
-  localStorage.setItem('dmx_'+currentProject,JSON.stringify(data));
-  alert('Gespeichert');
-}
-
-function loadProject(){
-  currentProject=projectSelect.value;
-  const d=JSON.parse(localStorage.getItem('dmx_'+currentProject)||'{}');
-
-  sceneTable.tBodies[0].innerHTML='';
-  chaseTable.tBodies[0].innerHTML='';
-  for(let i=0;i<10;i++) addSceneRow();
-  for(let i=0;i<6;i++) addChaseRow();
-
-  [...sceneTable.querySelectorAll('input')].forEach((i,n)=>i.value=d.scenes?.[n]||'');
-  [...chaseTable.querySelectorAll('input')].forEach((i,n)=>i.value=d.chases?.[n]||'');
-
-  stage.innerHTML=''; fixtureCount=0;
-  d.fixtures?.forEach(f=>addFixture(parseInt(f.x),parseInt(f.y),f.dmx));
-}
-
-function createProject(){
-  const n=newProjectName.value.trim();
-  if(!n) return;
-  localStorage.setItem('dmx_'+n,'{}');
-  loadProjects(); projectSelect.value=n; loadProject();
-}
-
-function loadProjects(){
-  projectSelect.innerHTML='';
-  Object.keys(localStorage).filter(k=>k.startsWith('dmx_')).forEach(k=>{
-    const o=document.createElement('option');
-    o.value=k.replace('dmx_','');
-    o.textContent=o.value;
-    projectSelect.appendChild(o);
+function updateAllChaseLabels(){
+  document.querySelectorAll('[data-scene]').forEach(l=>{
+    const id=l.dataset.scene;
+    l.querySelector('.scene-name').textContent =
+      sceneNames[id] || '(kein Name)';
   });
 }
 
-/* Init */
-for(let i=0;i<10;i++) addSceneRow();
-for(let i=0;i<6;i++) addChaseRow();
-loadProjects(); loadProject();
-</script>
+function addChase(){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input class="chase-name"></td>
+    <td></td>
+    <td><input class="chase-speed"></td>
+    <td><input class="chase-mode"></td>
+    <td><input class="chase-note"></td>
+  `;
+  tr.children[1].appendChild(buildSceneSelector());
+  chaseBody.appendChild(tr);
+  updateAllChaseLabels();
+}
 
+/* ---------- Backup ---------- */
+function downloadBackup(){
+  const data={
+    scenes:sceneNames,
+    chases:[...chaseBody.children].map(tr=>({
+      name:tr.querySelector('.chase-name').value,
+      speed:tr.querySelector('.chase-speed').value,
+      mode:tr.querySelector('.chase-mode').value,
+      note:tr.querySelector('.chase-note').value,
+      scenes:[...tr.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value)
+    }))
+  };
+
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='dmx-backup.json';
+  a.click();
+}
+
+/* ---------- Import ---------- */
+importFile.onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+
+  const r=new FileReader();
+  r.onload=()=>{
+    const data=JSON.parse(r.result);
+
+    Object.keys(sceneNames).forEach(id=>{
+      sceneNames[id]=data.scenes?.[id]||'';
+      const i=document.querySelector(`input[data-scene="${id}"]`);
+      if(i)i.value=sceneNames[id];
+    });
+
+    chaseBody.innerHTML='';
+    data.chases?.forEach(c=>{
+      addChase();
+      const tr=chaseBody.lastChild;
+      tr.querySelector('.chase-name').value=c.name;
+      tr.querySelector('.chase-speed').value=c.speed;
+      tr.querySelector('.chase-mode').value=c.mode;
+      tr.querySelector('.chase-note').value=c.note;
+      c.scenes.forEach(id=>{
+        const cb=tr.querySelector(`input[value="${id}"]`);
+        if(cb)cb.checked=true;
+      });
+    });
+
+    updateAllChaseLabels();
+    alert('Backup importiert');
+  };
+  r.readAsText(file);
+};
+
+/* Init */
+addChase();
+updateAllChaseLabels();
+</script>
 </body>
 </html>
